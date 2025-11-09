@@ -5,14 +5,15 @@ import type { GraphData, UserInput } from '../types';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {
-  console.error(
-    'Error: VITE_API_BASE_URL is not set in your .env file.'
+  throw new Error(
+    'VITE_API_BASE_URL is not set. Please configure it in your .env file.'
   );
 }
 
 // 2. Create the axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
