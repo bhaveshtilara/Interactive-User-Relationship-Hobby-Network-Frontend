@@ -7,7 +7,7 @@ import {
 } from 'react';
 import type { GraphNode, GraphEdge, UserInput } from '../types';
 // 1. Import the API functions we need
-import { getGraphData, createUser as apiCreateUser } from '../services/api';
+import { getGraphData, createUser as apiCreateUser, linkUsers as apiLinkUsers, } from '../services/api';
 // 2. Import toast for notifications
 import toast from 'react-hot-toast';
 
@@ -34,6 +34,7 @@ interface GraphContextType {
   fetchData: () => Promise<void>;
   // 3. Add our new createUser function
   createUser: (userData: UserInput) => Promise<void>;
+  linkUsers: (sourceId: string, targetId: string) => Promise<void>;
 }
 
 // 4. Create the Context
@@ -119,8 +120,32 @@ export const GraphProvider = ({ children }: GraphProviderProps) => {
     }
   };
 
+  const linkUsers = async (sourceId: string, targetId: string) => {
+    dispatch({ type: 'MUTATION_START' });
+    try {
+      await toast.promise(
+        apiLinkUsers(sourceId, targetId), // The function to run
+        {
+          loading: 'Creating friendship...',
+          success: 'Friendship created!',
+        error: (err) => {
+        if (err.response?.data?.detail && Array.isArray(err.response.data.detail)) {
+            return err.response.data.detail[0].msg || 'Validation failed';
+        }
+        return err.response?.data?.detail || 'Failed to create friendship.';
+        },
+        }
+      );
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      dispatch({ type: 'MUTATION_END' });
+    }
+  };
+
   // 5. Update the context value
-  const value = { state, fetchData, createUser };
+  const value = { state, fetchData, createUser, linkUsers };
 
   return (
     <GraphContext.Provider value={value}>{children}</GraphContext.Provider>

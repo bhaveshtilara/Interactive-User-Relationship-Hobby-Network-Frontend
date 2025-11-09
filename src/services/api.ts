@@ -41,7 +41,7 @@ export const deleteUser = async (id: string) => {
 };
 
 export const linkUsers = async (userId: string, friendId: string) => {
-  const response = await api.post(`/api/users/${userId}/link`, { friendId });
+  const response = await api.post(`/api/users/${userId}/link`, { friend_id: friendId }); 
   return response.data;
 };
 

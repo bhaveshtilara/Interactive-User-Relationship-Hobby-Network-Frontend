@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import ReactFlow, {
   Controls,
   Background,
   useNodesState,
   useEdgesState,
+  type Connection,
 } from 'reactflow';
 import { useGraph } from '../../context/GraphContext';
 
@@ -25,11 +26,20 @@ const nodeTypes = {
 };
 
 const GraphCanvas = () => {
-  const { state, fetchData } = useGraph();
+  const { state, fetchData, linkUsers } = useGraph();
   const { isLoading } = state;
   const [nodes, setNodes, onNodesChange] = useNodesState(state.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(state.edges);
 
+const onConnect = useCallback(
+    (params: Connection) => {
+      // We must have a source and target
+      if (params.source && params.target) {
+        linkUsers(params.source, params.target);
+      }
+    },
+    [linkUsers] // Dependency
+  );
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -39,8 +49,6 @@ const GraphCanvas = () => {
     setEdges(state.edges);
   }, [state.nodes, state.edges, setNodes, setEdges]);
 
-  // We no longer define nodeTypes inside the component
-  // const nodeTypes = useMemo(...) <-- REMOVED
 
   if (isLoading && state.nodes.length === 0) {
     return <div className="loading-spinner">Loading...</div>;
@@ -52,6 +60,7 @@ const GraphCanvas = () => {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
+        onConnect={onConnect}
         onEdgesChange={onEdgesChange}
         fitView
         className="main-graph"
