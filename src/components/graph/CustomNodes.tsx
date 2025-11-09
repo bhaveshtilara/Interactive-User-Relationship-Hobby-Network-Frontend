@@ -58,3 +58,30 @@ export function HighScoreNode({ data }: NodeProps<UserNodeData>) {
     </div>
   );
 }
+
+export function VeryHighScoreNode({ data }: NodeProps<UserNodeData>) {
+  // Add a special style for "pro" users
+  const veryHighScoreStyle: React.CSSProperties = {
+    ...commonStyle,
+    background: '#4a1a4a', // Purple background
+    border: '1px solid #ff3cff',
+    boxShadow: '0 0 15px rgba(255, 60, 255, 0.7)',
+    color: '#f0c1f0',
+  };
+
+  return (
+    <div style={veryHighScoreStyle}>
+      <Handle type="target" position={Position.Top} />
+
+      {/* Node Content */}
+      <div>
+        <strong>🚀 {data.label}</strong> (Age: {data.age})
+      </div>
+      <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+        SCORE: {data.popularityScore}
+      </div>
+
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'; // <-- 1. Import useMemo
+import { useEffect, useMemo } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -7,15 +7,12 @@ import ReactFlow, {
 } from 'reactflow';
 import { useGraph } from '../../context/GraphContext';
 
-// 2. Import our new custom nodes
-import { LowScoreNode, HighScoreNode } from './CustomNodes';
+import {
+  LowScoreNode,
+  HighScoreNode,
+  VeryHighScoreNode,
+} from './CustomNodes';
 
-// 3. Define the nodeTypes *outside* the component
-// This fixes the React Flow warning
-const nodeTypes = {
-  LowScoreNode: LowScoreNode,
-  HighScoreNode: HighScoreNode,
-};
 
 const GraphCanvas = () => {
   const { state, fetchData } = useGraph();
@@ -32,6 +29,15 @@ const GraphCanvas = () => {
     setEdges(state.edges);
   }, [state.nodes, state.edges, setNodes, setEdges]);
 
+  const nodeTypes = useMemo(
+    () => ({
+      LowScoreNode: LowScoreNode,
+      HighScoreNode: HighScoreNode,
+      VeryHighScoreNode: VeryHighScoreNode, 
+    }),
+    []
+  );
+
   if (isLoading && state.nodes.length === 0) {
     return <div className="loading-spinner">Loading...</div>;
   }
@@ -45,7 +51,7 @@ const GraphCanvas = () => {
         onEdgesChange={onEdgesChange}
         fitView
         className="main-graph"
-        nodeTypes={nodeTypes} // <-- 4. Pass the nodeTypes here
+        nodeTypes={nodeTypes} 
       >
         <Controls />
         <Background />
