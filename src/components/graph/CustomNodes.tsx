@@ -1,7 +1,6 @@
 import { Handle, Position, type NodeProps } from 'reactflow';
 import { type UserNodeData } from '../../types';
 
-// We'll define a common style for both nodes
 const commonStyle: React.CSSProperties = {
   border: '1px solid #777',
   borderRadius: '8px',
@@ -11,14 +10,11 @@ const commonStyle: React.CSSProperties = {
   boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
 };
 
-// --- 1. Low Score Node (Score <= 5) ---
 export function LowScoreNode({ data }: NodeProps<UserNodeData>) {
   return (
     <div style={commonStyle}>
-      {/* A handle for incoming edges (top) */}
       <Handle type="target" position={Position.Top} />
 
-      {/* Node Content */}
       <div>
         <strong>{data.label}</strong> (Age: {data.age})
       </div>
@@ -26,18 +22,15 @@ export function LowScoreNode({ data }: NodeProps<UserNodeData>) {
         Score: {data.popularityScore}
       </div>
 
-      {/* A handle for outgoing edges (bottom) */}
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
 }
 
-// --- 2. High Score Node (Score > 5) ---
 export function HighScoreNode({ data }: NodeProps<UserNodeData>) {
-  // Add a special style for high-score users
   const highScoreStyle: React.CSSProperties = {
     ...commonStyle,
-    background: '#1a4a1a', // Greenish background
+    background: '#1a4a1a', 
     border: '1px solid #3cff3c',
     boxShadow: '0 0 10px rgba(60, 255, 60, 0.5)',
   };
@@ -46,7 +39,6 @@ export function HighScoreNode({ data }: NodeProps<UserNodeData>) {
     <div style={highScoreStyle}>
       <Handle type="target" position={Position.Top} />
 
-      {/* Node Content */}
       <div>
         <strong>🌟 {data.label}</strong> (Age: {data.age})
       </div>
@@ -60,10 +52,9 @@ export function HighScoreNode({ data }: NodeProps<UserNodeData>) {
 }
 
 export function VeryHighScoreNode({ data }: NodeProps<UserNodeData>) {
-  // Add a special style for "pro" users
   const veryHighScoreStyle: React.CSSProperties = {
     ...commonStyle,
-    background: '#4a1a4a', // Purple background
+    background: '#4a1a4a', 
     border: '1px solid #ff3cff',
     boxShadow: '0 0 15px rgba(255, 60, 255, 0.7)',
     color: '#f0c1f0',
@@ -73,7 +64,6 @@ export function VeryHighScoreNode({ data }: NodeProps<UserNodeData>) {
     <div style={veryHighScoreStyle}>
       <Handle type="target" position={Position.Top} />
 
-      {/* Node Content */}
       <div>
         <strong>🚀 {data.label}</strong> (Age: {data.age})
       </div>

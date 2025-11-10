@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'; // 'React' is needed for React.DragEvent
+import React, { useEffect, useCallback } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -22,7 +22,6 @@ const nodeTypes = {
   VeryHighScoreNode: VeryHighScoreNode,
 };
 
-// --- FIX 1: This component must be named GraphCanvasInternal ---
 const GraphCanvasInternal = () => {
   const { state, fetchData, linkUsers, selectNode, updateUser } = useGraph();
   const { isLoading } = state;
@@ -55,7 +54,6 @@ const GraphCanvasInternal = () => {
     [selectNode]
   );
 
-  // --- FIX 2: You were missing this onDragOver function ---
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -94,7 +92,7 @@ const GraphCanvasInternal = () => {
         });
       }
     },
-    [reactFlowInstance, updateUser] // Make sure updateUser is included here
+    [reactFlowInstance, updateUser]
   );
 
   if (isLoading && state.nodes.length === 0) {
@@ -110,7 +108,7 @@ const GraphCanvasInternal = () => {
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         onEdgesChange={onEdgesChange}
-        onDragOver={onDragOver} // This line will now work
+        onDragOver={onDragOver}
         onDrop={onDrop}
         fitView
         className="main-graph"
@@ -123,7 +121,6 @@ const GraphCanvasInternal = () => {
   );
 };
 
-// This wrapper component is correct and should be the default export
 const GraphCanvas = () => (
   <ReactFlowProvider>
     <GraphCanvasInternal />

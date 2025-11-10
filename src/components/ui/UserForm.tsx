@@ -1,19 +1,18 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { type UserInput } from '../../types';
-import { useEffect } from 'react'; // <-- 1. Import useEffect
+import { useEffect } from 'react'; 
 
 interface UserFormProps {
   onSubmit: (data: UserInput) => Promise<void>;
   isSubmitting: boolean;
-  defaultValues?: FormValues; // <-- 2. Add default values for editing
-  mode: 'create' | 'edit'; // <-- 3. Add mode
+  defaultValues?: FormValues; 
+  mode: 'create' | 'edit'; 
 }
 
-// Form values
 export type FormValues = {
   username: string;
   age: number;
-  hobbies: string; // Comma-separated string
+  hobbies: string; 
 };
 
 export const UserForm = ({
@@ -28,7 +27,7 @@ export const UserForm = ({
     formState: { errors },
     reset,
   } = useForm<FormValues>({
-    defaultValues: defaultValues, // <-- 4. Set default values
+    defaultValues: defaultValues, 
   });
 
   useEffect(() => {
