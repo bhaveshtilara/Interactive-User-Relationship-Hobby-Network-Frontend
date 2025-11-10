@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { GraphNode, GraphEdge, UserInput } from '../types';
-import { getGraphData, createUser as apiCreateUser, linkUsers as apiLinkUsers, deleteUser as apiDeleteUser, updateUser as apiUpdateUser,} from '../services/api';
+import { getGraphData, createUser as apiCreateUser, linkUsers as apiLinkUsers, deleteUser as apiDeleteUser, updateUser as apiUpdateUser,unlinkUsers as apiUnlinkUsers,} from '../services/api';
 import toast from 'react-hot-toast';
 
 interface GraphState {
@@ -34,6 +34,7 @@ interface GraphContextType {
   selectNode: (nodeId: string | null) => void;
   deleteUser: (userId: string) => Promise<void>;
   updateUser: (userId: string, userData: Partial<UserInput>) => Promise<void>;
+  unlinkUsers: (userId: string, friendId: string) => Promise<void>;
 }
 
 const GraphContext = createContext<GraphContextType | undefined>(undefined);
@@ -106,6 +107,25 @@ export const GraphProvider = ({ children }: GraphProviderProps) => {
           loading: 'Creating user...',
           success: (newUser) => `User "${newUser.username}" created!`,
           error: 'Failed to create user.',
+        }
+      );
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      dispatch({ type: 'MUTATION_END' });
+    }
+  };
+  const unlinkUsers = async (userId: string, friendId: string) => {
+    dispatch({ type: 'MUTATION_START' });
+    try {
+      await toast.promise(
+        apiUnlinkUsers(userId, friendId), 
+        {
+          loading: 'Removing friendship...',
+          success: 'Friendship removed!',
+          error: (err) =>
+            err.response?.data?.detail || 'Failed to remove friendship.',
         }
       );
       await fetchData();
@@ -190,7 +210,7 @@ const updateUser = async (
     dispatch({ type: 'SELECT_NODE', payload: nodeId });
   };
 
-  const value = { state, fetchData, createUser, linkUsers, selectNode, deleteUser, updateUser };
+  const value = { state, fetchData, createUser, linkUsers, selectNode, deleteUser, updateUser,unlinkUsers };
 
   return (
     <GraphContext.Provider value={value}>{children}</GraphContext.Provider>

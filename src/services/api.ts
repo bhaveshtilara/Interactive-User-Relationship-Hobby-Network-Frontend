@@ -44,7 +44,7 @@ export const linkUsers = async (userId: string, friendId: string) => {
 
 export const unlinkUsers = async (userId: string, friendId: string) => {
   const response = await api.delete(`/api/users/${userId}/unlink`, {
-    data: { friendId }, 
+  data: { friend_id: friendId },
   });
   return response.data;
 };

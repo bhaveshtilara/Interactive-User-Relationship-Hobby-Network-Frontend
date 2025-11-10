@@ -8,6 +8,8 @@ import ReactFlow, {
   type Node,
   useReactFlow,
   ReactFlowProvider,
+  type OnEdgesChange,
+  applyEdgeChanges,
 } from 'reactflow';
 import { useGraph } from '../../context/GraphContext';
 import {
@@ -23,10 +25,10 @@ const nodeTypes = {
 };
 
 const GraphCanvasInternal = () => {
-  const { state, fetchData, linkUsers, selectNode, updateUser } = useGraph();
+  const { state, fetchData, linkUsers, selectNode, updateUser,unlinkUsers } = useGraph();
   const { isLoading } = state;
   const [nodes, setNodes, onNodesChange] = useNodesState(state.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(state.edges);
+  const [edges, setEdges] = useEdgesState(state.edges);
   const reactFlowInstance = useReactFlow();
 
   const onConnect = useCallback(
@@ -94,6 +96,25 @@ const GraphCanvasInternal = () => {
     },
     [reactFlowInstance, updateUser]
   );
+  const handleEdgesChange: OnEdgesChange = useCallback(
+    (changes) => {
+      // Look for a 'remove' change
+      const removeChange = changes.find((change) => change.type === 'remove');
+
+      if (removeChange && 'id' in removeChange) {
+        const edgeToRemove = state.edges.find(
+          (edge) => edge.id === removeChange.id
+        );
+
+        if (edgeToRemove) {
+          unlinkUsers(edgeToRemove.source, edgeToRemove.target);
+        }
+      } else {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+      }
+    },
+    [state.edges, setEdges, unlinkUsers]
+  );
 
   if (isLoading && state.nodes.length === 0) {
     return <div className="loading-spinner">Loading...</div>;
@@ -107,7 +128,8 @@ const GraphCanvasInternal = () => {
         onNodesChange={onNodesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
-        onEdgesChange={onEdgesChange}
+        onEdgesChange={handleEdgesChange}
+        deleteKeyCode={['Backspace', 'Delete']}
         onDragOver={onDragOver}
         onDrop={onDrop}
         fitView
