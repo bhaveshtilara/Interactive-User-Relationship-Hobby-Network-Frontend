@@ -11,11 +11,10 @@ import { GraphProvider } from './context/GraphContext.tsx';
 import { Toaster } from 'react-hot-toast';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    {/* 3. Wrap the App with the GraphProvider */}
-    <GraphProvider>
-      <App />
-      <Toaster position="bottom-right" />
-    </GraphProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <GraphProvider>
+    <App />
+    <Toaster position="bottom-right" />
+  </GraphProvider>
+  // </React.StrictMode>
 );

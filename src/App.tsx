@@ -1,17 +1,16 @@
 import './App.css';
-// 1. Import the new component
 import GraphCanvas from './components/graph/GraphCanvas';
+// 1. Remove UserForm, import Sidebar
+import { Sidebar } from './components/sidebar/Sidebar';
+// 2. We can remove useGraph, it's handled in the Sidebar
+// import { useGraph } from './context/GraphContext'; 
 
 function App() {
+
   return (
     <div className="app-container">
-      {/* 1. Sidebar */}
-      <aside className="sidebar">
-        <h2>Controls</h2>
-        <hr />
-      </aside>
+      <Sidebar />
 
-      {/* 2. Main Graph Area */}
       <main className="main-content">
         <GraphCanvas />
       </main>
