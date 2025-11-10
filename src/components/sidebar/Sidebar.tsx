@@ -13,6 +13,7 @@ export const Sidebar = () => {
     return nodes.find((node) => node.id === selectedNodeId);
   }, [selectedNodeId, nodes]);
 
+  // --- Handlers ---
   const handleCreateUser = async (data: UserInput) => {
     await createUser(data);
   };
