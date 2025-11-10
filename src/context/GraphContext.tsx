@@ -7,7 +7,7 @@ import {
 } from 'react';
 import type { GraphNode, GraphEdge, UserInput } from '../types';
 // 1. Import the API functions we need
-import { getGraphData, createUser as apiCreateUser, linkUsers as apiLinkUsers, } from '../services/api';
+import { getGraphData, createUser as apiCreateUser, linkUsers as apiLinkUsers, deleteUser as apiDeleteUser, updateUser as apiUpdateUser,} from '../services/api';
 // 2. Import toast for notifications
 import toast from 'react-hot-toast';
 
@@ -18,6 +18,7 @@ interface GraphState {
   isLoading: boolean;
   isMutating: boolean; // For loading spinners on forms
   error: string | null;
+  selectedNodeId: string | null;
 }
 
 // 2. Define the actions our reducer can handle
@@ -26,7 +27,8 @@ type GraphAction =
   | { type: 'FETCH_SUCCESS'; payload: { nodes: GraphNode[]; edges: GraphEdge[] } }
   | { type: 'FETCH_ERROR'; payload: string }
   | { type: 'MUTATION_START' } // For create/update/delete
-  | { type: 'MUTATION_END' };
+  | { type: 'MUTATION_END' }
+  | { type: 'SELECT_NODE'; payload: string | null };
 
 // 3. Define the context value
 interface GraphContextType {
@@ -35,6 +37,9 @@ interface GraphContextType {
   // 3. Add our new createUser function
   createUser: (userData: UserInput) => Promise<void>;
   linkUsers: (sourceId: string, targetId: string) => Promise<void>;
+  selectNode: (nodeId: string | null) => void;
+  deleteUser: (userId: string) => Promise<void>;
+  updateUser: (userId: string, userData: Partial<UserInput>) => Promise<void>;
 }
 
 // 4. Create the Context
@@ -47,6 +52,7 @@ const initialState: GraphState = {
   isLoading: true,
   isMutating: false,
   error: null,
+  selectedNodeId: null,
 };
 
 // 6. Create the Reducer function (add mutation cases)
@@ -67,6 +73,8 @@ const graphReducer = (state: GraphState, action: GraphAction): GraphState => {
       return { ...state, isMutating: true };
     case 'MUTATION_END':
       return { ...state, isMutating: false };
+    case 'SELECT_NODE':
+      return { ...state, selectedNodeId: action.payload };
     default:
       return state;
   }
@@ -86,7 +94,10 @@ export const GraphProvider = ({ children }: GraphProviderProps) => {
     try {
       const data = await getGraphData();
       if (data && Array.isArray(data.nodes) && Array.isArray(data.edges)) {
-        dispatch({ type: 'FETCH_SUCCESS', payload: data });
+        const layoutedNodes = getLayoutedNodes(data.nodes);
+        dispatch({ type: 'FETCH_SUCCESS', 
+        payload: { nodes: layoutedNodes, edges: data.edges },
+        });
       } else {
         throw new Error('Received invalid graph data');
       }
@@ -97,7 +108,6 @@ export const GraphProvider = ({ children }: GraphProviderProps) => {
     }
   }, []);
 
-  // 4. --- NEW FUNCTION: Create User ---
   const createUser = async (userData: UserInput) => {
     dispatch({ type: 'MUTATION_START' });
     try {
@@ -119,6 +129,30 @@ export const GraphProvider = ({ children }: GraphProviderProps) => {
       dispatch({ type: 'MUTATION_END' });
     }
   };
+  
+  const deleteUser = async (userId: string) => {
+    dispatch({ type: 'MUTATION_START' });
+    try {
+      await toast.promise(
+        apiDeleteUser(userId), // The function to run
+        {
+          loading: 'Deleting user...',
+          success: 'User deleted!',
+          error: (err) =>
+            err.response?.data?.detail || 'Failed to delete user.',
+        }
+      );
+      // On success, refresh the graph and deselect node
+      await fetchData();
+      dispatch({ type: 'SELECT_NODE', payload: null });
+    } catch (err) {
+      console.error(err);
+      // Toast already handled the error message
+    } finally {
+      dispatch({ type: 'MUTATION_END' });
+    }
+  };
+  
 
   const linkUsers = async (sourceId: string, targetId: string) => {
     dispatch({ type: 'MUTATION_START' });
@@ -143,9 +177,37 @@ export const GraphProvider = ({ children }: GraphProviderProps) => {
       dispatch({ type: 'MUTATION_END' });
     }
   };
+const updateUser = async (
+  userId: string,
+  userData: Partial<UserInput>
+) => {
+  dispatch({ type: 'MUTATION_START' });
+  try {
+    await toast.promise(
+      apiUpdateUser(userId, userData), // API call
+      {
+        loading: 'Updating user...',
+        success: 'User updated!',
+        error: (err) =>
+          err.response?.data?.detail || 'Failed to update user.',
+      }
+    );
+    await fetchData();
+    dispatch({ type: 'SELECT_NODE', payload: null });
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    dispatch({ type: 'MUTATION_END' });
+  }
+};
+
+  const selectNode = (nodeId: string | null) => {
+    dispatch({ type: 'SELECT_NODE', payload: nodeId });
+  };
 
   // 5. Update the context value
-  const value = { state, fetchData, createUser, linkUsers };
+  const value = { state, fetchData, createUser, linkUsers, selectNode, deleteUser, updateUser };
 
   return (
     <GraphContext.Provider value={value}>{children}</GraphContext.Provider>
@@ -160,4 +222,20 @@ export const useGraph = () => {
     throw new Error('useGraph must be used within a GraphProvider');
   }
   return context;
+};
+
+const getLayoutedNodes = (nodes: GraphNode[]): GraphNode[] => {
+  const nodesPerRow = 5;
+  const xOffset = 250;
+  const yOffset = 150;
+
+  return nodes.map((node, index) => {
+    return {
+      ...node,
+      position: {
+        x: (index % nodesPerRow) * xOffset,
+        y: Math.floor(index / nodesPerRow) * yOffset,
+      },
+    };
+  });
 };

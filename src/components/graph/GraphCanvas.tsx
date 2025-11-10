@@ -1,45 +1,44 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react'; // 'React' is needed for React.DragEvent
 import ReactFlow, {
   Controls,
   Background,
   useNodesState,
   useEdgesState,
   type Connection,
+  type Node,
+  useReactFlow,
+  ReactFlowProvider,
 } from 'reactflow';
 import { useGraph } from '../../context/GraphContext';
-
-// 1. Import all THREE custom nodes
 import {
   LowScoreNode,
   HighScoreNode,
   VeryHighScoreNode,
 } from './CustomNodes';
 
-// 2. (*** THE NEW FIX ***)
-// Define the nodeTypes object *outside* the component,
-// at the top level of the module.
-// This ensures it is only created ONCE.
 const nodeTypes = {
   LowScoreNode: LowScoreNode,
   HighScoreNode: HighScoreNode,
   VeryHighScoreNode: VeryHighScoreNode,
 };
 
-const GraphCanvas = () => {
-  const { state, fetchData, linkUsers } = useGraph();
+// --- FIX 1: This component must be named GraphCanvasInternal ---
+const GraphCanvasInternal = () => {
+  const { state, fetchData, linkUsers, selectNode, updateUser } = useGraph();
   const { isLoading } = state;
   const [nodes, setNodes, onNodesChange] = useNodesState(state.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(state.edges);
+  const reactFlowInstance = useReactFlow();
 
-const onConnect = useCallback(
+  const onConnect = useCallback(
     (params: Connection) => {
-      // We must have a source and target
       if (params.source && params.target) {
         linkUsers(params.source, params.target);
       }
     },
-    [linkUsers] // Dependency
+    [linkUsers]
   );
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -49,6 +48,54 @@ const onConnect = useCallback(
     setEdges(state.edges);
   }, [state.nodes, state.edges, setNodes, setEdges]);
 
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      selectNode(node.id);
+    },
+    [selectNode]
+  );
+
+  // --- FIX 2: You were missing this onDragOver function ---
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const hobby = event.dataTransfer.getData('application/x-hobby');
+      if (!hobby) {
+        return;
+      }
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const targetNode = reactFlowInstance
+        .getNodes()
+        .find(
+          (node) =>
+            position.x >= node.position.x &&
+            position.x <= node.position.x + (node.width || 0) &&
+            position.y >= node.position.y &&
+            position.y <= node.position.y + (node.height || 0)
+        );
+
+      if (targetNode) {
+        const newHobbies = new Set(targetNode.data.hobbies as string[]);
+        newHobbies.add(hobby);
+
+        updateUser(targetNode.id, {
+          hobbies: Array.from(newHobbies),
+        });
+      }
+    },
+    [reactFlowInstance, updateUser] // Make sure updateUser is included here
+  );
 
   if (isLoading && state.nodes.length === 0) {
     return <div className="loading-spinner">Loading...</div>;
@@ -61,10 +108,13 @@ const onConnect = useCallback(
         edges={edges}
         onNodesChange={onNodesChange}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
         onEdgesChange={onEdgesChange}
+        onDragOver={onDragOver} // This line will now work
+        onDrop={onDrop}
         fitView
         className="main-graph"
-        nodeTypes={nodeTypes} // <-- This now references the constant defined outside
+        nodeTypes={nodeTypes}
       >
         <Controls />
         <Background />
@@ -72,5 +122,12 @@ const onConnect = useCallback(
     </div>
   );
 };
+
+// This wrapper component is correct and should be the default export
+const GraphCanvas = () => (
+  <ReactFlowProvider>
+    <GraphCanvasInternal />
+  </ReactFlowProvider>
+);
 
 export default GraphCanvas;

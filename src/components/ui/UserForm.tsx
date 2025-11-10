@@ -1,29 +1,43 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import type { UserInput } from '../../types';
+import { type UserInput } from '../../types';
+import { useEffect } from 'react'; // <-- 1. Import useEffect
 
 interface UserFormProps {
   onSubmit: (data: UserInput) => Promise<void>;
   isSubmitting: boolean;
+  defaultValues?: FormValues; // <-- 2. Add default values for editing
+  mode: 'create' | 'edit'; // <-- 3. Add mode
 }
 
-// Define the shape of our form data
-type FormValues = {
+// Form values
+export type FormValues = {
   username: string;
   age: number;
-  hobbies: string; // We'll use a comma-separated string for simplicity
+  hobbies: string; // Comma-separated string
 };
 
-export const UserForm = ({ onSubmit, isSubmitting }: UserFormProps) => {
+export const UserForm = ({
+  onSubmit,
+  isSubmitting,
+  defaultValues,
+  mode,
+}: UserFormProps) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<FormValues>();
+  } = useForm<FormValues>({
+    defaultValues: defaultValues, // <-- 4. Set default values
+  });
 
-  // This function handles the form's data
+  useEffect(() => {
+    if (defaultValues) {
+      reset(defaultValues);
+    }
+  }, [defaultValues, reset]);
+
   const onFormSubmit: SubmitHandler<FormValues> = async (data) => {
-    // Convert the hobbies string into an array
     const hobbiesArray = data.hobbies
       .split(',')
       .map((h) => h.trim())
@@ -31,20 +45,24 @@ export const UserForm = ({ onSubmit, isSubmitting }: UserFormProps) => {
 
     const userData: UserInput = {
       username: data.username,
-      age: Number(data.age), // Ensure age is a number
+      age: Number(data.age),
       hobbies: hobbiesArray,
     };
 
-    // Call the parent's submit function
     await onSubmit(userData);
-    
-    // Clear the form
-    reset();
+
+    if (mode === 'create') {
+      reset();
+    }
   };
+
+  const title = mode === 'create' ? 'Create New User' : 'Edit User';
+  const buttonLabel = mode === 'create' ? 'Create User' : 'Save Changes';
+  const submittingLabel = mode === 'create' ? 'Creating...' : 'Saving...';
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)}>
-      <h3>Create New User</h3>
+      <h3>{title}</h3>
       <div className="form-group">
         <label htmlFor="username">Username</label>
         <input
@@ -81,7 +99,7 @@ export const UserForm = ({ onSubmit, isSubmitting }: UserFormProps) => {
       </div>
 
       <button type="submit" className="form-button" disabled={isSubmitting}>
-        {isSubmitting ? 'Creating...' : 'Create User'}
+        {isSubmitting ? submittingLabel : buttonLabel}
       </button>
     </form>
   );
