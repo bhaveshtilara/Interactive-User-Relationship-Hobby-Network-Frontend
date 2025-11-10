@@ -13,7 +13,6 @@ export const Sidebar = () => {
     return nodes.find((node) => node.id === selectedNodeId);
   }, [selectedNodeId, nodes]);
 
-  // --- Handlers ---
   const handleCreateUser = async (data: UserInput) => {
     await createUser(data);
   };
@@ -32,7 +31,7 @@ export const Sidebar = () => {
   const handleUpdateUser = async (data: UserInput) => {
     if (!selectedNode) return;
     await updateUser(selectedNode.id, data);
-    setIsEditing(false); // Go back to "details" view
+    setIsEditing(false); 
   };
 
   const handleBack = () => {
@@ -40,7 +39,6 @@ export const Sidebar = () => {
     setIsEditing(false);
   };
 
-  // --- Default Values for Edit Form ---
   const defaultFormValues: FormValues | undefined = useMemo(() => {
     if (!selectedNode) return undefined;
     return {
@@ -48,13 +46,12 @@ export const Sidebar = () => {
       age: selectedNode.data.age,
       hobbies: selectedNode.data.hobbies.join(', '),
     };
-  }, [selectedNode]); // Memoize this to prevent re-renders
+  }, [selectedNode]); 
 
   return (
     <aside className="sidebar">
       <h2>Controls</h2>
 
-      {/* --- 1. CREATE FORM --- */}
       {!selectedNode && (
         <UserForm
           onSubmit={handleCreateUser}
@@ -63,12 +60,10 @@ export const Sidebar = () => {
         />
       )}
 
-      {/* --- 2. SELECTED NODE PANEL --- */}
       {selectedNode && (
         <div className="selected-node-panel">
           {!isEditing ? (
             <>
-              {/* --- 2a. DETAILS VIEW --- */}
               <h3>{selectedNode.data.label}</h3>
               <p>Age: {selectedNode.data.age}</p>
               <p>Score: {selectedNode.data.popularityScore}</p>
@@ -76,7 +71,7 @@ export const Sidebar = () => {
               <button
                 className="form-button"
                 style={{ background: '#ffc107' }}
-                onClick={() => setIsEditing(true)} // This is the button
+                onClick={() => setIsEditing(true)} 
               >
                 Edit User
               </button>
@@ -98,7 +93,6 @@ export const Sidebar = () => {
             </>
           ) : (
             <>
-              {/* --- 2b. EDIT VIEW --- */}
               <UserForm
                 onSubmit={handleUpdateUser}
                 isSubmitting={isMutating}
@@ -108,7 +102,7 @@ export const Sidebar = () => {
               <button
                 className="form-button"
                 style={{ background: '#6c757d', marginTop: '10px' }}
-                onClick={() => setIsEditing(false)} // Cancel button
+                onClick={() => setIsEditing(false)} 
               >
                 Cancel
               </button>
@@ -118,7 +112,6 @@ export const Sidebar = () => {
       )}
 
       <hr style={{ margin: '20px 0' }} />
-      {/* Hobby List will go here */}
       <HobbyList />
     </aside>
   );

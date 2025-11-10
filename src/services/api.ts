@@ -1,7 +1,6 @@
 import axios from 'axios';
 import type { GraphData, UserInput } from '../types';
 
-// 1. Get the base URL from our environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {
@@ -10,7 +9,6 @@ if (!API_BASE_URL) {
   );
 }
 
-// 2. Create the axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
@@ -19,7 +17,6 @@ const api = axios.create({
   },
 });
 
-// 3. Export all our API functions
 export const getGraphData = async () => {
   const response = await api.get<GraphData>('/api/graph');
   return response.data;
@@ -47,10 +44,9 @@ export const linkUsers = async (userId: string, friendId: string) => {
 
 export const unlinkUsers = async (userId: string, friendId: string) => {
   const response = await api.delete(`/api/users/${userId}/unlink`, {
-    data: { friendId }, // DELETE requests send body in 'data' field
+    data: { friendId }, 
   });
   return response.data;
 };
 
-// Export the default instance if needed
 export default api;

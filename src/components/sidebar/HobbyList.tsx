@@ -5,7 +5,6 @@ export const HobbyList = () => {
   const [filter, setFilter] = useState('');
   const { state } = useGraph();
 
-  // 1. Get all unique hobbies from all nodes
   const allHobbies = useMemo(() => {
     const hobbySet = new Set<string>();
     state.nodes.forEach((node) => {
@@ -16,17 +15,14 @@ export const HobbyList = () => {
     return Array.from(hobbySet).sort();
   }, [state.nodes]);
 
-  // 2. Filter hobbies based on search input
   const filteredHobbies = allHobbies.filter((hobby) =>
     hobby.toLowerCase().includes(filter.toLowerCase())
   );
 
-  // 3. This function is called when you start dragging a hobby
   const onDragStart = (
     event: React.DragEvent<HTMLDivElement>,
     hobby: string
   ) => {
-    // We store the hobby name in the drag event
     event.dataTransfer.setData('application/x-hobby', hobby);
     event.dataTransfer.effectAllowed = 'move';
   };
@@ -47,8 +43,8 @@ export const HobbyList = () => {
           <div
             key={hobby}
             className="hobby-item"
-            draggable // This makes it draggable
-            onDragStart={(e) => onDragStart(e, hobby)} // This sets the data
+            draggable 
+            onDragStart={(e) => onDragStart(e, hobby)}
           >
             {hobby}
           </div>
